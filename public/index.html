@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard Temperatura e Umidade </title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+      background: #ffff;
+    }
+    h1 {
+      margin-bottom: 30px;
+    }
+    canvas {
+    width: 700px;
+    height: 900px;
+      margin: 20px auto;
+      display: block;
+      background: transparent;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(83, 83, 83, 0.726);
+    }
+    table {
+      width: 80%;
+      margin: 40px auto;
+      border-collapse: collapse;
+      background: transparent;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 10px;
+      border: 2px solid #ffffff;
+    }
+    th {
+      background-color: #42a5f5;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #8ed6ffa1;
+    }
+  </style>
+</head>
+<body>
+  <h1>Dashboard Temperatura e Umidade</h1>
+
+  <canvas id="tempChart"></canvas>
+  <canvas id="humChart"></canvas>
+
+  <h2>Histórico de Leituras</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Data - Hora</th>
+        <th>Temperatura (°C)</th>
+        <th>Umidade (%)</th>
+      </tr>
+    </thead>
+    <tbody id="historyTableBody">
+    </tbody>
+  </table>
+
+  <script>
+    async function fetchData() {
+      const response = await fetch("/api/data");
+      let data = await response.json();
+
+      data = data.map(entry => ({
+        ...entry,
+        temperatura: entry.temperatura / 10,
+        umidade: entry.umidade / 10
+      }));
+
+      return data;
+    }
+    function createChart(ctx, label, data, color) {
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: data.map(d => new Date(d.created_at).toLocaleTimeString()),
+          datasets: [{
+            label,
+            data: data.map(d => d[label.toLowerCase()]),
+            borderColor: color,
+            fill: false
+          }]
+        }
+      });
+    }
+
+    function fillHistoryTable(data) {
+      const tbody = document.getElementById("historyTableBody");
+      tbody.innerHTML = "";
+
+      data.forEach(entry => {
+        const row = document.createElement("tr");
+
+        const dateCell = document.createElement("td");
+        dateCell.textContent = new Date(entry.created_at).toLocaleString();
+
+        const tempCell = document.createElement("td");
+        tempCell.textContent = entry.temperatura?.toFixed(2) + "ºC" ?? "-";
+
+        const humCell = document.createElement("td");
+        humCell.textContent = entry.umidade?.toFixed(2) + "%" ?? "-";
+
+        row.appendChild(dateCell);
+        row.appendChild(tempCell);
+        row.appendChild(humCell);
+
+        tbody.appendChild(row);
+      });
+    }
+
+    fetchData().then(data => {
+      createChart(document.getElementById("tempChart"), "Temperatura", data, "red");
+      createChart(document.getElementById("humChart"), "Umidade", data, "blue");
+      fillHistoryTable(data);
+    });
+  </script>
+</body>
+</html>
