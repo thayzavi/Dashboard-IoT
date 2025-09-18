@@ -72,8 +72,8 @@
 
       data = data.map(entry => ({
         ...entry,
-        temperatura: entry.temperatura / 10,
-        umidade: entry.umidade / 10
+        temperatura: entry.temperatura ,
+        umidade: entry.umidade 
       }));
 
       return data;
@@ -104,10 +104,10 @@
         dateCell.textContent = new Date(entry.created_at).toLocaleString();
 
         const tempCell = document.createElement("td");
-        tempCell.textContent = entry.temperatura?.toFixed(2) + "ºC" ?? "-";
+        tempCell.textContent = entry.temperatura?.toFixed(1) + "ºC" ?? "-";
 
         const humCell = document.createElement("td");
-        humCell.textContent = entry.umidade?.toFixed(2) + "%" ?? "-";
+        humCell.textContent = entry.umidade?.toFixed(1) + "%" ?? "-";
 
         row.appendChild(dateCell);
         row.appendChild(tempCell);
